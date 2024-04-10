@@ -1,5 +1,6 @@
 const express = require("express")
 const app = express()
+const cors = require('cors')
 require("dotenv").config()
 const connectDB = require("./db/connect")
 const bodyParser = require('body-parser');
@@ -11,6 +12,7 @@ app.use(express.json())
 
 app.use(bodyParser.json())
 
+app.use(cors())
 app.use('/', customerRouter)
 app.use('/', paymentRouter)
 

@@ -5,10 +5,10 @@ const {loginController} = require('../controller/userAdmin')
 const {createData, getallCustomer, getOneCustomer} = require('../controller/customerData')
 const verifyToken = require('../middleware/verifyUser')
 
-router.post('/login', loginController)
+router.post('/login', cors(), loginController)
 
-router.post('/sendProjectData', verifyToken,  createData)
-router.get('/customers', verifyToken,  getallCustomer)
-router.get('/customers/:appId', verifyToken,  getOneCustomer)
+router.post('/sendProjectData', verifyToken, cors(),  createData)
+router.get('/customers', verifyToken, cors(), getallCustomer)
+router.get('/customers/:appId', verifyToken, cors(),  getOneCustomer)
 
 module.exports = router
