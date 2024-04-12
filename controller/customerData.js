@@ -1,4 +1,6 @@
 const customerData = require("../model/customerData");
+const { createObjectCsvWriter } = require('csv-writer');
+const fs = require('fs')
 
 const createData = async (req, res) => {
   try {
@@ -92,27 +94,34 @@ const customerDownload = async(req, res) =>{
   try {
     const customers = await customerData.find({});
 
-    const columns = {
-        applicationNo: 'Application No',
-        customerName: 'Name',
-        customerEmail: 'Email',
-        customerAddress: 'Address',
-        customerTelephone: 'Telephone',
-        city: 'City',
-        district: 'District',
-        zone: 'Zone',
-        mapVendorId: 'Vendor ID',
-        mapNumber: 'MAP Number'
-    };
+    const csvWriter = createObjectCsvWriter({
+        path: './customer_data.csv',
+        header: [
+            { id: 'applicationNo', title: 'Application No' },
+            { id: 'customerName', title: 'Name' },
+            { id: 'customerEmail', title: 'Email' },
+            { id: 'customerAddress', title: 'Address' },
+            { id: 'customerTelephone', title: 'Telephone' },
+            { id: 'city', title: 'City' },
+            { id: 'district', title: 'District' },
+            { id: 'zone', title: 'Zone' },
+            { id: 'mapVendorId', title: 'Vendor ID' },
+            { id: 'mapNumber', title: 'MAP Number' }
+        ]
+    });
 
-    stringify(customers, { header: true, columns: columns }, (err, output) => {
+    await csvWriter.writeRecords(customers);
+
+    res.download('./customer_data.csv', 'customer_data.csv', (err) => {
         if (err) {
-            throw err; 
+            console.error('Error sending file:', err);
         }
-
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename=customer_data.csv');
-        res.send(output);
+      
+        fs.unlink('./customer_data.csv', (unlinkErr) => {
+            if (unlinkErr) {
+                console.error('Error deleting file:', unlinkErr);
+            }
+        });
     });
 } catch (error) {
     console.error('Failed to download customer data:', error);
