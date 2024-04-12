@@ -10,7 +10,7 @@ router.post('/login', cors(), loginController)
 router.post('/sendProjectData', verifyToken, cors(),  createData)
 router.get('/customers', verifyToken, cors(), getallCustomer)
 router.get('/customers/:appId', verifyToken, cors(),  getOneCustomer)
-router.get('/customers/download', verifyToken, customerDownload)
+router.get('/download', verifyToken, customerDownload)
 
 
 module.exports = router
