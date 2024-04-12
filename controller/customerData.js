@@ -18,22 +18,11 @@ const createData = async (req, res) => {
 
     if (existingUser) {
       return res
-        .status(400)
+        .status(409)
         .json({ message: "Customer Application Data already exists" });
     }
-
-    function generateMapNumber(mapVendorId) {
-      const date = new Date();
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear().toString().slice(-2);
-      const timestamp = `${day}${month}${year}`;
-      const randomPart = `S${Math.floor(Math.random() * 900) + 100}`;
-      return `${mapVendorId}-${timestamp}-${randomPart}`;
-    }
-
     const mapNumber = generateMapNumber(mapVendorId);
-
+    
     const newCustomerData = new customerData({
       applicationNo,
       customerName,
@@ -44,6 +33,7 @@ const createData = async (req, res) => {
       district,
       zone,
       mapVendorId,
+      mapNumber
     });
 
     const savedUser = await newCustomerData.save();
@@ -53,14 +43,25 @@ const createData = async (req, res) => {
       mapVendorId: savedUser.mapVendorId,
       mapNumber,
     };
-
-    res.status(200).json(responseData);
+    
+    res.status(201).json(responseData);
   } catch (error) {
     res
-      .status(500)
-      .json({ message: "Error saving customer details", error: error.message });
+    .status(500)
+    .json({ message: "Error saving customer details", error: error.message });
   }
 };
+
+function generateMapNumber(mapVendorId) {
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear().toString().slice(-2);
+  const timestamp = `${day}${month}${year}`;
+  const randomPart = `S${Math.floor(Math.random() * 900) + 100}`;
+  return `${mapVendorId}-${timestamp}-${randomPart}`;
+}
+
 
 const getallCustomer = async (req, res) => {
   try {
@@ -74,7 +75,7 @@ const getallCustomer = async (req, res) => {
 const getOneCustomer = async (req, res) => {
   try {
     const customer = await customerData.findOne({
-      applicationNo: req.params.applicationNo,
+      applicationNo: req.params,
     });
 
     if (!customer) {
@@ -87,4 +88,37 @@ const getOneCustomer = async (req, res) => {
   }
 };
 
-module.exports = { createData, getallCustomer, getOneCustomer };
+const customerDownload = async(req, res) =>{
+  try {
+    const customers = await customerData.find({});
+
+    const columns = {
+        applicationNo: 'Application No',
+        customerName: 'Name',
+        customerEmail: 'Email',
+        customerAddress: 'Address',
+        customerTelephone: 'Telephone',
+        city: 'City',
+        district: 'District',
+        zone: 'Zone',
+        mapVendorId: 'Vendor ID',
+        mapNumber: 'MAP Number'
+    };
+
+    stringify(customers, { header: true, columns: columns }, (err, output) => {
+        if (err) {
+            throw err; 
+        }
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=customer_data.csv');
+        res.send(output);
+    });
+} catch (error) {
+    console.error('Failed to download customer data:', error);
+    res.status(500).json({ message: "Failed to process download request", error: error.message });
+}
+};
+
+
+module.exports = { createData, getallCustomer, getOneCustomer, customerDownload};
