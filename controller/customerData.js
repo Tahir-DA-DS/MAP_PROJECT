@@ -75,7 +75,7 @@ const getallCustomer = async (req, res) => {
 const getOneCustomer = async (req, res) => {
   try {
     const customer = await customerData.findOne({
-      applicationNo: req.params,
+      applicationNo:req.params,
     });
 
     if (!customer) {
