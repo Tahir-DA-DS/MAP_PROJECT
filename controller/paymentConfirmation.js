@@ -97,7 +97,7 @@ const paymentDownload = async(req, res) =>{
         ]
     });
 
-    await csvWriter.writeRecords(customers);
+    await csvWriter.writeRecords(payments);
 
     res.download('./payment_data.csv', 'payment_data.csv', (err) => {
         if (err) {
