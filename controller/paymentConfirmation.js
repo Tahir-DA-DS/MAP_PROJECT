@@ -1,5 +1,7 @@
 const paymentData = require("../model/paymentConfirmation");
 const customerData = require("../model/customerData");
+const { createObjectCsvWriter } = require('csv-writer');
+const fs = require('fs')
 
 const { body, validationResult } = require("express-validator");
 
@@ -79,4 +81,40 @@ const getallPayment = async (req, res) => {
   }
 };
 
-module.exports = { CreatepaymentConfirmation, getOnepayment, getallPayment };
+
+const paymentDownload = async(req, res) =>{
+  try {
+    const payments = await paymentData.find({});
+
+    const csvWriter = createObjectCsvWriter({
+        path: './payment_data.csv',
+        header: [
+            { id: 'applicationNo', title: 'Application No' },
+            { id: 'mapVendorId', title: 'Vendor ID' },
+            { id: 'mapNumber', title: 'MAP Number' },
+            { id: 'amountPaid', title: 'Amount' },
+            { id: 'datePaid', title: 'Date' }
+        ]
+    });
+
+    await csvWriter.writeRecords(customers);
+
+    res.download('./payment_data.csv', 'payment_data.csv', (err) => {
+        if (err) {
+            console.error('Error sending file:', err);
+        }
+      
+        fs.unlink('./payment_data.csv', (unlinkErr) => {
+            if (unlinkErr) {
+                console.error('Error deleting file:', unlinkErr);
+            }
+        });
+    });
+} catch (error) {
+    console.error('Failed to download payment data:', error);
+    res.status(500).json({ message: "Failed to process download request", error: error.message });
+}
+};
+
+
+module.exports = { CreatepaymentConfirmation, getOnepayment, getallPayment, paymentDownload};
